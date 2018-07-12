@@ -1,0 +1,1 @@
+docker run --name moutai-token -e POSTGRES_PASSWORD=z -p 5432:5432 -d postgres:9

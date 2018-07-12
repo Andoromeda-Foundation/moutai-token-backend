@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "name": "moutai_token_cron",
+      "script": "crons/index.js",
+      "watch": false,
+      "merge_logs": true,
+      "autorestart": true,
+      "instances": 1,
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}

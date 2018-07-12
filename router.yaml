@@ -1,0 +1,1484 @@
+swagger: '2.0'
+info:
+  title: coinfair
+  description: coinfair
+  version: 0.0.1
+# host: localhost:8080
+# host: 35.187.151.156:8080
+host: api.coinfair.app
+# host: 192.168.43.148:8080
+basePath: /api
+schemes:
+  - https
+  # - http
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  APIKeyHeader:
+    type: apiKey
+    in: header
+    name: token
+  ConsoleKeyHeader:
+    type: apiKey
+    in: header
+    name: console-token
+paths:
+  /keyValues/{key}:
+    get:
+      summary: 获取静态参数
+      description: 返回的result中，字段value的值为一个object。获取eth价格的key为：'eth/cny'，其余类似，目前只有'eth/cny', 'btc/cny', 'cfc/cny'
+      x-oai-controller:
+        - file: keyValue
+          handler: getKeyValue
+      parameters:
+        - in: path
+          name: key
+          type: string
+          required: true
+          description: 请求的key值
+      responses:
+        '200':
+          description: 返回查找的keyValue
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/keyValue'
+  /sendValidatePhoneSMS:
+    post:
+      summary: 发送验证短信
+      description:
+        1. 发送验证短信，用户注册、修改绑定手机前调用，目前验证码都是1234
+        2. type为register或其他（如：forgetPassword或forgetMoneyPassword或changeMoneyPassword)，后两者会校验账号是否注册过
+      x-oai-controller:
+        - file: user
+          handler: sendValidatePhoneSMS
+      parameters:
+          - in: body
+            name: body
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  type: string
+                type:
+                  type: string
+      responses:
+        200:
+          description: 发送成功
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+  /register:
+    post:
+      summary: 用户注册
+      description: 测试阶段注册用户，每个用户赠送每个币种5枚，测试使用
+      x-oai-controller:
+        - file: login
+          handler: register
+      parameters:
+          - in: body
+            name: body
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+                - code
+              properties:
+                phone:
+                  type: string
+                password:
+                  type: string
+                code:
+                  type: string
+      responses:
+        200:
+          description: 注册成功，返回用户信息
+          headers:
+            token:
+              type: string
+              description: 用户在线状态token，登录后所有请求都应在header中加上此token。用户退出或在其他设备登录后，此token自动失效。
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /forgetPassword:
+    post:
+      summary: 重置密码
+      description: 重置密码
+      x-oai-controller:
+        - file: login
+          handler: forgetPassword
+      parameters:
+          - in: body
+            name: body
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+                - code
+              properties:
+                phone:
+                  type: string
+                password:
+                  type: string
+                code:
+                  type: string
+      responses:
+        200:
+          description: 重置成功，返回用户信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /forgetMoneyPassword:
+    post:
+      summary: 重置资金密码
+      description: 重置资金密码
+      x-oai-controller:
+        - file: login
+          handler: forgetMoneyPassword
+      parameters:
+          - in: body
+            name: body
+            schema:
+              type: object
+              required:
+                - phone
+                - moneyPassword
+                - code
+              properties:
+                phone:
+                  type: string
+                moneyPassword:
+                  type: string
+                code:
+                  type: string
+      responses:
+        200:
+          description: 重置成功，返回用户信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /login:
+    post:
+      summary: 用户登录
+      x-oai-controller:
+        - file: login
+          handler: login
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required:
+              - phone
+              - password
+            properties:
+              phone:
+                type: string
+              password:
+                type: string
+      responses:
+        '200':
+          description: 返回登录的用户的信息
+          headers:
+            token:
+              type: string
+              description: 用户的token，登录后所有请求都应在header中加上此token。用户退出或在其他设备登录后，此token自动失效。
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /logout:
+    post:
+      summary: 用户登出
+      x-oai-controller:
+        - file: login
+          handler: logout
+      security:
+        - APIKeyHeader: []
+      responses:
+        '200':
+          description: 登出成功，用户token失效
+  /users/{id}:
+    get:
+      summary: 获取某个用户的信息
+      description: 通过此接口，只能获取到用户的可公开信息，包括以下字段：
+        'nickname',
+        'phone',
+        'ethTradeFiatAmount',
+        'ethTradeCount',
+        'btcTradeFiatAmount',
+        'btcTradeCount',
+        'cfcTradeFiatAmount',
+        'cfcTradeCount',
+        'bio',
+        'verifiedStatus'
+      x-oai-controller:
+        - file: user
+          handler: getUserById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 用户id
+      responses:
+        '200':
+          description: 返回查找的用户的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /user/kyc:
+    post:
+      summary: 提交kyc用户验证信息
+      description: 提交用户名字和证件号码，提交用用户的verifiedStatus将变为normal
+      x-oai-controller:
+        - file: user
+          handler: kyc
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            required:
+              - name
+              - idNumber
+            type: object
+            properties:
+              name:
+                type: string
+              idNumber:
+                type: string
+      responses:
+        '200':
+          description: 返回用户的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /user:
+    get:
+      summary: 获取当前登录用户的信息
+      x-oai-controller:
+        - file: user
+          handler: getCurrentUser
+      security:
+        - APIKeyHeader: []
+      responses:
+        '200':
+          description: 返回当前登录用户的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+    patch:
+      summary: 更新当前用户某一字段信息
+      description: >-
+        1. 更新当前用户某一字段信息，可更新字段：
+          'nickname', 'oldPassword', 'newPassword', 'oldMoneyPassword', 'newMoneyPassword', 
+          'phone', 'code', 'wechatAccount', 'aliPayAccount', 'bankAccount', 'bio'
+        2. request中可以只包含需要更新的字段，不需要包含所有字段信息。
+        3. 如更新phone，必须附带验证码code。
+        4. 当更新密码时，newPassword和oldPassword必须同时出现。
+        5. wechatAccount 为object，包含name, account字段。
+        6. aliPayAccount 为object，包含name, account字段。
+        7. bankAccount 为object，包含name, account, bank字段。
+        8. 更新支付相关信息，需要附带password字段，验证用户密码
+        9. 如果用户没有设置oldMoneyPassword，可以直接传newMoneyPassword，资金密码必须为6位数字
+        10. 修改资金密码需要带着code验证码
+      x-oai-controller:
+        - file: user
+          handler: updateUser
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              nickname:
+                type: string
+              oldPassword:
+                type: string
+              newPassword:
+                type: string
+              oldMoneyPassword:
+                type: string
+              newMoneyPassword:
+                type: string
+              phone:
+                type: string
+              code:
+                type: string
+              wechatAccount:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  account:
+                    type: string
+              aliPayAccount:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  account:
+                    type: string
+              bankAccount:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  account:
+                    type: string
+                  bank:
+                    type: string
+              bio:
+                type: string
+      responses:
+        '200':
+          description: 更新成功，并返回更新成功后的用户信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /user/wallets:
+    get:
+      summary: 【已废弃】获取用户的所有可用充值钱包
+      description: 获取用户的所有交易记录，可以根据指定category来进行筛选
+      x-oai-controller:
+        - file: wallet
+          handler: getUserWallets
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: query
+          name: category
+          type: string
+          description: 币种
+      responses:
+        '200':
+          description: 返回用户的所有可用充值钱包
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/wallets'
+  /user/transfers:
+    get:
+      summary: 获取用户的所有的充值提币记录
+      description: 获取用户的所有交易记录，可以根据指定type, category来进行筛选，通过limit和offset控制数量
+      x-oai-controller:
+        - file: transfer
+          handler: getUserTransfers
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset
+        - in: query
+          name: type
+          type: string
+          description: 充值 deposit 或 提币 withdraw
+        - in: query
+          name: category
+          type: string
+          description: 币种
+      responses:
+        '200':
+          description: 返回用户的所有的充值提币记录
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/transfers'
+    post:
+      summary: 用户创建新的提币请求
+      x-oai-controller:
+        - file: transfer
+          handler: createTransfer
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: body
+          name: body
+          description: 创建的提币相关信息，需要输入资金密码进行校验；comment可以不传
+          schema:
+            type: object
+            required:
+              - category
+              - to
+              - totalAmount
+              - moneyPassword
+            properties:
+              category:
+                type: string
+              to:
+                type: string
+              totalAmount:
+                type: number
+              moneyPassword:
+                type: string
+              comment:
+                type: string
+      responses:
+        '200':
+          description: 创建成功，并返回创建成功后的transfer
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/transfer'
+  /trades:
+    get:
+      summary: 获取所有挂单中的交易
+      description: 获取所有挂单中的交易，可以根据指定type，category，region，currency，isUseAlipayPayment, isUseWechatPayment, isUseBankCardPayment来进行筛选，
+        通过limit和offset控制数量。trade中包含creator的信息，根据币种不同包含如btcTradeFiatAmount或ethTradeFiatAmount等字段。
+        在所有返回trades的接口中，只有当trade状态status为noraml时，会带着currentPrice字段。
+      x-oai-controller:
+        - file: trade
+          handler: getTrades
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit，默认为25，最大值为25
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset， 默认为0
+        - in: query
+          name: type
+          type: string
+          description: 买单 buy 或 卖单 sell，默认为sell
+          enum: [sell, buy]
+        - in: query
+          name: category
+          type: string
+          description: 数字货币币种，小写字母，例如btc，默认为eth
+          enum: [eth, btc, cfc]
+        - in: query
+          name: currency
+          type: string
+          description: 发币币种，三位小写字母，例如cny
+          enum: [cny, usd]
+        - in: query
+          name: region
+          type: string
+          description: 国家和地区, 两位小写字符
+          enum: [cn]
+        - in: query
+          name: isUseAlipayPayment
+          type: boolean
+          description: 是否可以使用支付宝交易
+        - in: query
+          name: isUseWechatPayment
+          type: boolean
+          description: 是否可以使用微信交易
+        - in: query
+          name: isUseBankCardPayment
+          type: boolean
+          description: 是否可以使用银行卡交易
+      responses:
+        '200':
+          description: 返回挂单列表，返回体中的count是trade总数
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              count:
+                type: integer
+              result:
+                $ref: '#/definitions/trades'
+  /trades/{id}:
+    get:
+      summary: 获取某笔交易的信息
+      description:
+        1. 此接口会附带creator、cryptoFromUser、cryptoToUser实例
+        2. 不带着token时，通过此接口只能获取到状态为normal（公开）的挂单；并且附带的用户实例只包含可公开的字段：
+          'nickname',
+          'phone',
+          'ethTradeFiatAmount',
+          'ethTradeCount',
+          'btcTradeFiatAmount',
+          'btcTradeCount',
+          'cfcTradeFiatAmount',
+          'cfcTradeCount',
+          'bio',
+          'verifiedStatus',
+          'isSetMoneyPassword'
+        3. 带着token时，可以获取所有和自己有关的交易。附带的用户实例中包含交易相关的字段。多带着以下字段：
+          'wechatAccount',
+          'aliPayAccount',
+          'bankAccount',
+
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: getTradeById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 返回查找的交易的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+    patch:
+      summary: 更新某笔交易的信息
+      description: 更新某笔交易的信息
+        1. 如果状态为撤回withdraw，可以更新交易的各属性值
+        2. 如果交易为其他状态，则不能被更新
+        3. isFollowFiatAmount一直为true无法修改
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: updateTradeById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: body
+          name: body
+          description: 交易相关信息
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+              category:
+                type: string
+              region:
+                type: string
+              currency:
+                type: string
+              floatingPrice:
+                type: number
+              payPeriod:
+                type: integer
+              maxPrice:
+                type: number
+              minPrice:
+                type: number
+              maxFiatAmount:
+                type: number
+              minFiatAmount:
+                type: number
+              isUseAlipayPayment:
+                type: boolean
+              isUseWechatPayment:
+                type: boolean
+              isUseBankCardPayment:
+                type: boolean
+              comment:
+                type: string
+      responses:
+        '200':
+          description: 更新成功，并返回更新成功后的交易挂单
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/messages:
+    get:
+      summary: 【未完成】获取某笔交易的聊天信息
+      description: 获取某笔交易的聊天信息，通过limit和offset控制数量
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: index
+          handler: index
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset
+      responses:
+        '200':
+          description: 返回查找的交易的聊天信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/messages'
+    post:
+      summary: 【未完成】发送新消息，接收方为交易的另一方
+      x-oai-controller:
+        - file: index
+          handler: index
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: body
+          name: body
+          description: message相关信息
+          schema:
+            type: object
+            required:
+              - content
+            properties:
+              content:
+                type: string
+      responses:
+        '200':
+          description: 创建成功，并返回创建成功后的message
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/message'
+  /trades/{id}/reopen:
+    post:
+      summary: 重新上架一个withdraw状态的挂单
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: reopen
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 重新上架成功，并返回创建成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/withdraw:
+    post:
+      summary: 下架一个normal状态的挂单
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: withdraw
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 下架成功，并返回创建成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/launch:
+    post:
+      summary: 与某一个正在挂单的交易开始进行交易
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: launch
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: body
+          name: body
+          description: 创建的交易相关信息
+          schema:
+            type: object
+            required:
+              - finalFiatAmount
+            properties:
+              finalFiatAmount:
+                type: number
+      responses:
+        '200':
+          description: 发起交易成功，并返回创建成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/confirm:
+    post:
+      summary: 创建订单者确认交易可以进行
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: confirm
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 确认交易成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/reject:
+    post:
+      summary: 创建订单者拒绝交易进行，交易将变回normal状态
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: reject
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 拒绝交易成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/confirmSendMoney:
+    post:
+      summary: 买方确认已经转账
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: confirmSendMoney
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 买方确认已经转账成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/confirmReceiveMoney:
+    post:
+      summary: 卖方确认已经收到转账，需要输入资金密码进行校验
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: confirmReceiveMoney
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: body
+          name: body
+          description: 需要输入密码进行校验
+          schema:
+            type: object
+            required:
+              - moneyPassword
+            properties:
+              moneyPassword:
+                type: string
+      responses:
+        '200':
+          description: 卖方确认已经收到转账成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/cancel:
+    post:
+      summary: 取消订单
+      description: 只有支付发币方在pending状态下可以取消订单
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: cancel
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 取消订单成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/appeal:
+    post:
+      summary: 申诉订单
+      description:
+        1. 在pending、confirmSendMoney、confirmReceiveMoney状态的订单可以申诉
+        2. 申诉后订单将进入appeal状态
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: appeal
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+      responses:
+        '200':
+          description: 申诉成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /trades/{id}/rate:
+    post:
+      summary: 评价订单
+      description: 只有在confirmReceiveMoney状态才能进行评价，当双方都进行评价后，订单状态将进入closed
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: trade
+          handler: rate
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 交易id
+        - in: body
+          name: body
+          description: 需要评价，目前只有好评差评：好评传good，差评传bad
+          schema:
+            type: object
+            required:
+              - rate
+            properties:
+              rate:
+                type: string
+      responses:
+        '200':
+          description: 评价订单成功，并返回成功后的trade
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /priceOrder:
+    get:
+      summary: 获取当前浮动系数排名
+      description: 获取当前浮动系数排名，返回的result直接就是此价格的排名
+      x-oai-controller:
+        - file: trade
+          handler: getPriceOrder
+      parameters:
+        - in: query
+          name: type
+          type: string
+          description: 买单 buy 或 卖单 sell
+          enum: [sell, buy]
+        - in: query
+          name: category
+          type: string
+          description: 数字货币币种，小写字母，如eth
+          enum: [eth, btc, cfc]
+        - in: query
+          name: currency
+          type: string
+          description: 法币币种，三位小写字母，如cny
+        - in: query
+          name: floatingPrice
+          type: number
+          description: 当前浮动价格，小数，如1.01, 0.99
+      responses:
+        '200':
+          description: 返回排名，买单高价排名更高，卖单低价排名更高
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                type: integer
+  /user/trades:
+    get:
+      summary: 获取用户的所有交易记录
+      description:
+        1. 获取用户的所有交易记录，可以根据指定type，status, category来进行筛选
+        2. 通过limit和offset控制数量
+        3. status可以为ad，来获取所有广告（withdraw、normal）
+        4. status可以为notAd，来获取所有非广告订单(除withdraw、normal其余状态)
+        5. status可以为finished，返回已结束的订单(canceled、closed)
+        6. status可以为ongoing，返回进行中的订单(除canceled、closed、normal、withdraw其余状态)
+      x-oai-controller:
+        - file: trade
+          handler: getUserTrades
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset
+        - in: query
+          name: type
+          type: string
+          description: 买单 buy 或 卖单 sell，直接筛选数据库中的type值，可以不传此字段
+          enum: [sell, buy]
+        - in: query
+          name: category
+          type: string
+          description: 数字货币币种，小写字母，如eth
+          enum: [eth, btc, cfc]
+        - in: query
+          name: currency
+          type: string
+          description: 法币币种，三位小写字母，如cny
+        - in: query
+          name: status
+          type: string
+          description: 状态
+      responses:
+        '200':
+          description: 返回用户的交易历史
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              count:
+                type: integer
+              result:
+                $ref: '#/definitions/trades'
+    post:
+      summary: 用户创建新的交易挂单
+      x-oai-controller:
+        - file: trade
+          handler: createTrade
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: body
+          name: body
+          description:
+            1. 创建的交易相关信息
+            2. isFollowFiatAmount均为true，可以不带isFollowFiatAmount字段
+            3. floatingPrice为浮动系数，传入值为小数，如 1.01, 0.98
+            4. maxPrice, minPrice, maxFiatAmount, minFiatAmount为可选字段
+            5. payPeriod为付款、打币期限，例如：
+              5.1 开始交易后，如果法币方payPeriod内未确认转账，交易将被取消
+              5.2 法币方确认转账好，如果数字货币方payPeriod内未确认收款，将自动转币
+          schema:
+            type: object
+            required:
+              - type
+              - category
+              - region
+              - currency
+              - floatingPrice
+              - isUseAlipayPayment
+              - isUseWechatPayment
+              - isUseBankCardPayment
+              - comment
+            properties:
+              type:
+                type: string
+                enum: [sell, buy]
+              category:
+                type: string
+                enum: [eth, btc, cfc]
+              region:
+                type: string
+                enum: [cn]
+              currency:
+                type: string
+                enum: [cny, usd]
+              floatingPrice:
+                type: number
+              maxPrice:
+                type: number
+              minPrice:
+                type: number
+              maxFiatAmount:
+                type: number
+              minFiatAmount:
+                type: number
+              payPeriod:
+                type: integer
+              isUseAlipayPayment:
+                type: boolean
+              isUseWechatPayment:
+                type: boolean
+              isUseBankCardPayment:
+                type: boolean
+              isFollowFiatAmount:
+                type: boolean
+              comment:
+                type: string
+      responses:
+        '200':
+          description: 创建成功，并返回创建成功后的交易挂单
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/trade'
+  /user/notifications:
+    get:
+      summary: 获取用户的所有消息
+      description:
+        1. 获取用户的所有消息，可以设置status=unread获取未读消息
+        2. 按时间逆序
+        3. 通过limit和offset控制数量
+      x-oai-controller:
+        - file: notification
+          handler: getUserNotification
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset
+        - in: query
+          name: status
+          type: string
+          description: status为unread或done
+          enum: [unread, done]
+      responses:
+        '200':
+          description: 返回用户的消息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              count:
+                type: integer
+              result:
+                $ref: '#/definitions/notifications'
+  /notifications/{id}/read:
+    post:
+      summary: 把消息标记为已读状态
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: notification
+          handler: readNotification
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 消息id
+      responses:
+        '200':
+          description: 标记成功，返回这条消息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/notification'
+
+definitions:
+  user:
+    type: object
+    properties:
+      id:
+        type: integer
+      nickname:
+        type: string
+      phone:
+        type: string
+      ethAvailableAssetAmount:
+        type: number
+      ethFrozenAssetAmount:
+        type: number
+      ethTradeFiatAmount:
+        type: number
+      ethTradeGoodRateCount:
+        type: integer
+      ethTradeBadRateCount:
+        type: integer
+      ethTradeCount:
+        type: integer
+      btcAvailableAssetAmount:
+        type: number
+      btcFrozenAssetAmount:
+        type: number
+      btcTradeFiatAmount:
+        type: number
+      btcTradeGoodRateCount:
+        type: integer
+      btcTradeBadRateCount:
+        type: integer
+      btcTradeCount:
+        type: integer
+      cfcAvailableAssetAmount:
+        type: number
+      cfcFrozenAssetAmount:
+        type: number
+      cfcTradeFiatAmount:
+        type: number
+      cfcTradeGoodRateCount:
+        type: integer
+      cfcTradeBadRateCount:
+        type: integer
+      cfcTradeCount:
+        type: integer
+      totalTradeGoodRateCount:
+        type: integer
+      totalTradeBadRateCount:
+        type: integer
+      totalTradeCount:
+        type: integer
+      verifiedStatus:
+        type: string
+      bio:
+        type: string
+      addressBTC142:
+        type: string
+      addressBTC173:
+        type: string
+      addressETH:
+        type: string
+      addressZEC:
+        type: string
+      isSetMoneyPassword:
+        type: boolean
+  users:
+    type: array
+    items:
+      $ref: '#/definitions/user'
+  trade:
+    type: object
+    properties:
+      id:
+        type: integer
+      type:
+        type: string
+      category:
+        type: string
+      status:
+        type: string
+      region:
+        type: string
+      currency:
+        type: string
+      floatingPrice:
+        type: number
+      currentPrice:
+        type: number
+      maxPrice:
+        type: number
+      minPrice:
+        type: number
+      maxFiatAmount:
+        type: integer
+      minFiatAmount:
+        type: integer
+      finalFiatAmount:
+        type: integer
+      finalPrice:
+        type: number
+      finalTotalCryptoAmount:
+        type: number
+      isUseAlipayPayment:
+        type: boolean
+      isUseWechatPayment:
+        type: boolean
+      isUseBankCardPayment:
+        type: boolean
+      isFollowFiatAmount:
+        type: boolean
+      comment:
+        type: string
+      cryptoFromUserId:
+        type: integer
+      cryptoToUserId:
+        type: integer
+      creatorId:
+        type: integer
+  trades:
+    type: array
+    items:
+      $ref: '#/definitions/trade'
+  transfer:
+    type: object
+    properties:
+      id:
+        type: integer
+      type:
+        type: string
+      category:
+        type: string
+      status:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+      totalAmount:
+        type: number
+      feeAmount:
+        type: number
+      actualAmount:
+        type: number
+      confirmedAt:
+        type: string
+      userId:
+        type: integer
+      comment:
+        type: string
+  transfers:
+    type: array
+    items:
+      $ref: '#/definitions/transfer'
+  wallet:
+    type: object
+    properties:
+      id:
+        type: integer
+      category:
+        type: string
+      address:
+        type: string
+      userId:
+        type: integer
+  wallets:
+    type: array
+    items:
+      $ref: '#/definitions/wallet'
+  message:
+    type: object
+    properties:
+      id:
+        type: integer
+      content:
+        type: string
+      userId:
+        type: integer
+      tradeId:
+        type: integer
+  messages:
+    type: array
+    items:
+      $ref: '#/definitions/message'
+  keyValue:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: object
+  keyValues:
+    type: array
+    items:
+      $ref: '#/definitions/keyValue'
+  notification:
+    type: object
+    properties:
+      id:
+        type: integer
+      type:
+        type: string
+      status:
+        type: string
+      content:
+        type: string
+      userId:
+        type: integer
+      parameters:
+        type: object
+  notifications:
+    type: array
+    items:
+      $ref: '#/definitions/notification'
+  deposit:
+    type: object
+    properties:
+      id:
+        type: integer
+      crypto:
+        type: string
+      txHash:
+        type: string
+      source:
+        type: string
+      target:
+        type: string
+      amount:
+        type: number
+      confirmedAt:
+        type: string
+      targetUserId:
+        type: integer
+      comment:
+        type: string
+  deposits:
+    type: array
+    items:
+      $ref: '#/definitions/deposit'
+  withdraw:
+    type: object
+    properties:
+      id:
+        type: integer
+      crypto:
+        type: string
+      txHash:
+        type: string
+      source:
+        type: string
+      target:
+        type: string
+      amount:
+        type: number
+      fee:
+        type: number
+      confirmedAt:
+        type: string
+      targetUserId:
+        type: integer
+      comment:
+        type: string
+  withdraws:
+    type: array
+    items:
+      $ref: '#/definitions/withdraw'

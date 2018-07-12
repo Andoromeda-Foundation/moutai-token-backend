@@ -1,0 +1,14 @@
+{
+  "extends": "airbnb-base",
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "prefer-destructuring": "off",
+    "arrow-parens": "off",
+    "no-unused-vars": "off",
+    "max-len": "off",
+    "camelcase": "off"
+  }
+}

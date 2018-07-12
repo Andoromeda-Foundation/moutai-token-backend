@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "name": "moutai_token_server",
+      "script": "webServer.js",
+      "watch": false,
+      "merge_logs": true,
+      "autorestart": true,
+      "instances": 0,
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
