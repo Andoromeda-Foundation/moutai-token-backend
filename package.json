@@ -20,7 +20,6 @@
   },
   "lint-staged": {
     "*.js": [
-      "prettier --tab-width 2 --write",
       "eslint --fix",
       "git add"
     ]
