@@ -71,11 +71,11 @@ exports.sendValidatePhoneSMS = async function sendValidatePhoneSMS(phone) {
   return phoneVerificationCode;
 };
 
-exports.validatePhoneCode = async function validatePhoneCode(phone, code) {
+exports.validatePhoneCode = async function validatePhoneCode(phone, phoneVerificationCode) {
   const phoneVerification = await models.phoneVerification.find({
     where: {
       phone,
-      phoneVerificationCode: code,
+      phoneVerificationCode,
       phoneVerificationExpirationTime: {
         [Op.gte]: new Date(),
       },

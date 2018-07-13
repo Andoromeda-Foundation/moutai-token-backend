@@ -21,13 +21,11 @@ const define = function define() {
   models.user.hasMany(models.spirit);
   models.spirit.belongsTo(models.user);
 
-  // deposits & withdraws
-  models.user.hasMany(models.deposit);
-  models.deposit.belongsTo(models.user);
-  models.user.hasMany(models.withdraw);
-  models.withdraw.belongsTo(models.user);
+  // transaction: userId
+  models.user.hasMany(models.transaction);
+  models.transaction.belongsTo(models.user);
 
-  // trade: fromUserId, toUserId
+  // trade: fromUserId, toUserId, spiritId
   models.user.hasMany(models.trade, {
     foreignKey: 'fromUserId',
   });
@@ -42,6 +40,8 @@ const define = function define() {
     foreignKey: 'toUserId',
     as: 'toUser',
   });
+  models.spirit.hasMany(models.trade);
+  models.trade.belongsTo(models.spirit);
 
   // message: spiritId, userId
   models.message.belongsTo(models.user);
@@ -51,6 +51,12 @@ const define = function define() {
   // notification: userId
   models.user.hasMany(models.notification);
   models.notification.belongsTo(models.user);
+
+  // delivery: userId, spiritId
+  models.user.hasMany(models.delivery);
+  models.delivery.belongsTo(models.user);
+  models.spirit.hasOne(models.delivery);
+  models.delivery.belongsTo(models.spirit);
 };
 
 define();

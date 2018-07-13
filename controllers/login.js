@@ -3,35 +3,6 @@ const md5 = require('md5');
 const utils = require('../utils');
 const config = require('../config');
 const chance = require('chance').Chance();
-const btc = require('bitcoinjs-lib');
-const assert = require('assert');
-const ethHdkey = require('ethereumjs-wallet/hdkey');
-const ethUtil = require('ethereumjs-util');
-
-const btc_xpub =
-  'xpub6E6NVP4vKmQHVHCNXeX27Sgs9qdNQB89YXPJRVvDgjMtx9yit6Y3KXULaBBXfRMDzE2hAMcEi6CAVXyjSiusHvyY1a1mX2jDPwXGdLzM8bn';
-const eth_xpub =
-  'xpub6EThTKCBRKiHpGeoCzvzJqfXdLfcZTpgrkhJisKFBcHxDZLXtLfA864mXhrFiFsPo71QKAed2eATMhC4uosr8oucBYXVJh7SQumDvs8EpgX';
-const btc_hdnode = btc.HDNode.fromBase58(btc_xpub);
-const eth_hdnode = ethHdkey.fromExtendedKey(eth_xpub);
-
-const getAddBtc142 = index => {
-  assert(typeof index === 'number' && index >= 0);
-  const pub = btc_hdnode.derive(index);
-  return btc.address.fromOutputScript(btc.script.scriptHash.output.encode(btc.crypto.hash160(btc.script.witnessPubKeyHash.output.encode(btc.crypto.hash160(pub.getPublicKeyBuffer())))));
-};
-const getAddBtc173 = index => {
-  assert(typeof index === 'number' && index >= 0);
-  const pub = btc_hdnode.derive(index);
-  return btc.address.fromOutputScript(btc.script.witnessPubKeyHash.output.encode(btc.crypto.hash160(pub.getPublicKeyBuffer())));
-};
-const getAddEth = index => {
-  assert(typeof index === 'number' && index >= 0);
-  return ethUtil.toChecksumAddress(eth_hdnode
-    .deriveChild(index)
-    .getWallet()
-    .getAddressString());
-};
 
 const models = db.models;
 
@@ -49,29 +20,28 @@ exports.register = async function register(ctx) {
 
   const isVerifiedPhoneResult = await utils.phone.validatePhoneCode(
     ctx.request.body.phone,
-    ctx.request.body.code,
+    ctx.request.body.phoneVerificationCode,
   );
   ctx.assert(isVerifiedPhoneResult, 400, '手机验证码错误');
 
+  const isVerifiedInvitationCode = await utils.invitation.validateInvitationCode(ctx.request.body.invitationCode);
+  ctx.assert(isVerifiedInvitationCode, 400, '邀请码错误');
+
   const user = await models.user.create({
-    nickname: `user_${chance.word()}`,
+    nickname: ctx.request.body.nickname,
     phone: ctx.request.body.phone,
     password: md5(md5(`${config.passwordKey}_${ctx.request.body.password}`)),
   });
 
-  await user.update({
-    addressBTC142: getAddBtc142(user.id),
-    addressBTC173: getAddBtc173(user.id),
-    addressETH: getAddEth(user.id),
-  });
-
-  await utils.wallet.createNewUserWallet(user);
-
   // ONLY WHEN TEST
   await user.update({
-    ethAvailableAssetAmount: 5,
-    btcAvailableAssetAmount: 5,
-    cfcAvailableAssetAmount: 5,
+    balance: 10000,
+  });
+  await models.transaction.create({
+    type: 'income',
+    amount: 10000,
+    description: '注册赠送10000元',
+    userId: user.id,
   });
 
   const token = md5(`${config.tokenKey}_${user.id}_${new Date()}`);
@@ -127,36 +97,12 @@ exports.forgetPassword = async function forgetPassword(ctx) {
 
   const isVerifiedPhoneResult = await utils.phone.validatePhoneCode(
     ctx.request.body.phone,
-    ctx.request.body.code,
+    ctx.request.body.phoneVerificationCode,
   );
   ctx.assert(isVerifiedPhoneResult, 400, '手机验证码错误');
 
   await user.update({
     password: md5(md5(`${config.passwordKey}_${ctx.request.body.password}`)),
-  });
-
-  ctx.body = user.safe();
-};
-
-// POST /forgetMoneyPassword
-exports.forgetMoneyPassword = async function forgetMoneyPassword(ctx) {
-  const user = await models.user.find({
-    where: {
-      phone: ctx.request.body.phone,
-    },
-  });
-  ctx.assert(user, 400, '用户不存在');
-
-  ctx.assert(user.moneyPassword, 400, '用户没有设置资金密码');
-
-  const isVerifiedPhoneResult = await utils.phone.validatePhoneCode(
-    ctx.request.body.phone,
-    ctx.request.body.code,
-  );
-  ctx.assert(isVerifiedPhoneResult, 400, '手机验证码错误');
-
-  await user.update({
-    moneyPassword: md5(md5(`${config.passwordKey}_${ctx.request.body.moneyPassword}`)),
   });
 
   ctx.body = user.safe();

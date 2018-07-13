@@ -30,5 +30,9 @@ exports.dingdongCloud = {
 };
 exports.sendSMS = false;
 exports.SMSProvider = 'dingdongCloud';
-exports.userPublicAttributes = [];
-exports.userTradeAttributes = [];
+exports.userPublicAttributes = [
+  'id',
+  'nickname',
+  'bio',
+];
+exports.nextPriceIncreaseFactor = 0.05;

@@ -8,8 +8,8 @@ const models = db.models;
 
 // GET /user/notification
 exports.getUserNotification = async function getUserNotification(ctx) {
-  let limit = parseInt(ctx.query.limit || 25, 10);
-  limit = limit > 25 ? 25 : limit;
+  let limit = parseInt(ctx.query.limit || 50, 10);
+  limit = limit > 50 ? 50 : limit;
   const offset = parseInt(ctx.query.offset || 0, 10);
 
   const user = await ctx.auth();
