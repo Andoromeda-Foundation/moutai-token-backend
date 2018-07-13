@@ -77,7 +77,10 @@ paths:
   /register:
     post:
       summary: 用户注册
-      description: 用户注册，测试阶段每人账户里10000元
+      description:
+        1.用户注册
+        2. 测试阶段邀请码可以为任意值
+        3. 测试阶段每人账户里10000元
       x-oai-controller:
         - file: login
           handler: register
@@ -331,6 +334,28 @@ paths:
                 type: integer
               result:
                 $ref: '#/definitions/spirits'
+  /spirits/{id}:
+    post:
+      summary: 获取一瓶酒信息
+      x-oai-controller:
+        - file: spirit
+          handler: getSpiritById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 酒id
+      responses:
+        '200':
+          description: 返回一瓶酒酒的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/spirit'
   /spirits/{id}/buy:
     post:
       summary: 购买一瓶酒
@@ -401,8 +426,6 @@ paths:
       x-oai-controller:
         - file: trade
           handler: getSpiritTrades
-      security:
-        - APIKeyHeader: []
       parameters:
         - in: path
           name: id
@@ -423,7 +446,7 @@ paths:
     get:
       summary: 获取用户的所有交易记录
       description:
-        1. 获取用户的所有交易记录，可以根据指定spiriteId来进行筛选
+        1. 获取用户的所有交易记录，可以根据指定spiritId来进行筛选
         2. 通过limit和offset控制数量
         3. 按时间倒序
       x-oai-controller:
@@ -441,7 +464,7 @@ paths:
           type: integer
           description: 限制返回的offset
         - in: query
-          name: spiriteId
+          name: spiritId
           type: string
           description: 酒类编号
       responses:

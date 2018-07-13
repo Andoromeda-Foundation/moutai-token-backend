@@ -55,7 +55,11 @@ exports.getUserTrades = async function getUserTrades(ctx) {
     limit,
     offset,
     where: {
-      userId: user.id,
+      [Op.or]: [{
+        fromUserId: user.id,
+      }, {
+        toUserId: user.id,
+      }],
     },
     include: [{
       model: models.spirit,
@@ -73,8 +77,8 @@ exports.getUserTrades = async function getUserTrades(ctx) {
     ],
   };
 
-  if (ctx.query.spiriteId) {
-    option.where.spiriteId = parseInt(ctx.query.spiriteId, 10);
+  if (ctx.query.spiritId) {
+    option.where.spiritId = parseInt(ctx.query.spiritId, 10);
   }
 
   const trades = await models.trade.findAll(option);

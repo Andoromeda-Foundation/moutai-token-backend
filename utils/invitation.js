@@ -10,6 +10,11 @@ const models = db.models;
 const Op = sequelize.Op;
 
 exports.validateInvitationCode = async function validateInvitationCode(invitationCode) {
+  // ONLY WHEN DEV
+  if (invitationCode && config.dev) {
+    return true;
+  }
+
   const invitation = await models.invitation.find({
     where: {
       code: invitationCode,

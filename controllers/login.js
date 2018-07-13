@@ -33,16 +33,18 @@ exports.register = async function register(ctx) {
     password: md5(md5(`${config.passwordKey}_${ctx.request.body.password}`)),
   });
 
-  // ONLY WHEN TEST
-  await user.update({
-    balance: 10000,
-  });
-  await models.transaction.create({
-    type: 'income',
-    amount: 10000,
-    description: '注册赠送10000元',
-    userId: user.id,
-  });
+  // ONLY WHEN DEV
+  if (config.dev) {
+    await user.update({
+      balance: 10000,
+    });
+    await models.transaction.create({
+      type: 'income',
+      amount: 10000,
+      description: '注册赠送10000元',
+      userId: user.id,
+    });
+  }
 
   const token = md5(`${config.tokenKey}_${user.id}_${new Date()}`);
   await user.update({

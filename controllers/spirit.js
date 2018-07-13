@@ -24,6 +24,7 @@ exports.getSpirits = async function getSpirits(ctx) {
     },
     include: [{
       model: models.user,
+      attributes: config.userPublicAttributes,
     }],
     order: [
       ['updatedAt', 'DESC'],
@@ -54,6 +55,7 @@ exports.getSpiritById = async function getSpiritById(ctx) {
     },
     include: [{
       model: models.user,
+      attributes: config.userPublicAttributes,
     }],
   });
   ctx.assert(spirit, 404);
@@ -72,6 +74,7 @@ exports.buy = async function buy(ctx) {
     },
     include: [{
       model: models.user,
+      attributes: config.userPublicAttributes,
     }],
   });
   ctx.assert(spirit, 404);
@@ -102,6 +105,7 @@ exports.buy = async function buy(ctx) {
     price,
     fromUserId,
     toUserId,
+    spiritId: spirit.id,
   });
 
   const history = spirit.history;
@@ -116,7 +120,7 @@ exports.buy = async function buy(ctx) {
   const nextPrice = price * (1 + config.nextPriceIncreaseFactor);
 
   await spirit.update({
-    price,
+    currentPrice: price,
     nextPrice,
     userId: toUserId,
     history,
@@ -137,5 +141,14 @@ exports.buy = async function buy(ctx) {
     userId: fromUserId,
   });
 
-  ctx.body = spirit;
+  // 重新获取酒的信息
+  ctx.body = await models.spirit.find({
+    where: {
+      id: ctx.params.id,
+    },
+    include: [{
+      model: models.user,
+      attributes: config.userPublicAttributes,
+    }],
+  });
 };

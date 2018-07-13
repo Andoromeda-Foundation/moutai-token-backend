@@ -1,0 +1,11 @@
+- index: 00001
+  title: 贵州茅台 酱香型白酒 53度 飞天茅台
+  status: normal
+  brand: 茅台
+  region: 贵州
+  time: 2005
+  degree: 53
+  specification: 500
+  currentPrice: 1000
+  nextPrice: 1050
+  userId: 1

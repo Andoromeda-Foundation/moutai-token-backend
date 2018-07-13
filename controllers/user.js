@@ -23,7 +23,7 @@ exports.getUserById = async function getUserById(ctx) {
 exports.getCurrentUser = async function getCurrentUser(ctx) {
   const user = await ctx.auth();
 
-  ctx.body = user.safe();
+  ctx.body = user;
 };
 
 // PATCH /user
@@ -55,7 +55,7 @@ exports.updateUser = async function updateUser(ctx) {
 
   await user.update(update);
 
-  ctx.body = user.safe();
+  ctx.body = user;
 };
 
 // POST /sendValidatePhoneSMS
