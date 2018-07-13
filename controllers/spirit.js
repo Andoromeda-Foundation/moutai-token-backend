@@ -20,7 +20,7 @@ exports.getSpirits = async function getSpirits(ctx) {
     limit,
     offset,
     where: {
-      status: 'normal',
+      status: 'sale',
     },
     include: [{
       model: models.user,
@@ -66,7 +66,6 @@ exports.getSpiritById = async function getSpiritById(ctx) {
 // POST /spirits/{id}/buy
 exports.buy = async function buy(ctx) {
   const user = await ctx.auth();
-  const price = ctx.request.body.price;
 
   const spirit = await models.spirit.find({
     where: {
@@ -78,16 +77,22 @@ exports.buy = async function buy(ctx) {
     }],
   });
   ctx.assert(spirit, 404);
+  ctx.assert(spirit.status === 'sale', 400, '此瓶酒不在出售状态');
+
+  const oldPrice = spirit.currentPrice;
+  const currentPrice = ctx.request.body.price;
 
   const fromUserId = spirit.userId;
   const toUserId = user.id;
 
-  ctx.assert(price >= spirit.nextPrice, '出价小于最低可出价格');
-  ctx.assert(user.balance >= price, '用户余额不足');
+  ctx.assert(currentPrice >= spirit.nextPrice, '出价小于最低可出价格');
+  ctx.assert(user.balance >= currentPrice, '用户余额不足');
 
   // 买家扣款
   await models.user.increment({
-    balance: -price,
+    balance: -currentPrice,
+    assetCount: 1,
+    assetValue: currentPrice,
   }, {
     where: {
       id: toUserId,
@@ -95,14 +100,14 @@ exports.buy = async function buy(ctx) {
   });
   await models.transaction.create({
     type: 'expense',
-    amount: price,
+    amount: currentPrice,
     description: `购酒扣款 #${spirit.id} ${spirit.title}`,
     userId: toUserId,
   });
 
   // 酒信息更新
   const trade = await models.trade.create({
-    price,
+    price: currentPrice,
     fromUserId,
     toUserId,
     spiritId: spirit.id,
@@ -117,10 +122,10 @@ exports.buy = async function buy(ctx) {
     time: moment().toISOString(),
   });
 
-  const nextPrice = price * (1 + config.nextPriceIncreaseFactor);
+  const nextPrice = currentPrice * (1 + config.nextPriceIncreaseFactor);
 
   await spirit.update({
-    currentPrice: price,
+    currentPrice,
     nextPrice,
     userId: toUserId,
     history,
@@ -128,7 +133,9 @@ exports.buy = async function buy(ctx) {
 
   // 给卖家增加余额
   await models.user.increment({
-    balance: price,
+    balance: currentPrice,
+    assetCount: -1,
+    assetValue: -oldPrice,
   }, {
     where: {
       id: fromUserId,
@@ -136,12 +143,58 @@ exports.buy = async function buy(ctx) {
   });
   await models.transaction.create({
     type: 'income',
-    amount: price,
+    amount: currentPrice,
     description: `卖酒所得 #${spirit.id} ${spirit.title}`,
     userId: fromUserId,
   });
 
   // 重新获取酒的信息
+  ctx.body = await models.spirit.find({
+    where: {
+      id: ctx.params.id,
+    },
+    include: [{
+      model: models.user,
+      attributes: config.userPublicAttributes,
+    }],
+  });
+};
+
+
+// GET /spirits/{id}
+exports.getSpiritById = async function getSpiritById(ctx) {
+  const spirit = await models.spirit.find({
+    where: {
+      id: ctx.params.id,
+    },
+    include: [{
+      model: models.user,
+      attributes: config.userPublicAttributes,
+    }],
+  });
+  ctx.assert(spirit, 404);
+
+  ctx.body = spirit;
+};
+
+// PATCH /spirits/{id}
+exports.update = async function update(ctx) {
+  const user = await ctx.auth();
+
+  const spirit = await models.spirit.find({
+    where: {
+      id: ctx.params.id,
+    },
+  });
+  ctx.assert(spirit, 404);
+  ctx.assert(spirit.userId === user.id, 400, '只能修改自己的酒的状态');
+
+  ctx.assert(ctx.request.body.status === 'sale' || ctx.request.body.status === 'normal', 400, '无效状态');
+
+  await spirit.update({
+    status: ctx.request.body.status,
+  });
+
   ctx.body = await models.spirit.find({
     where: {
       id: ctx.params.id,

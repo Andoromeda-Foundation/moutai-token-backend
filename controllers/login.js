@@ -56,8 +56,8 @@ exports.register = async function register(ctx) {
   ctx.set('token', token);
 };
 
-// POST /login
-exports.login = async function login(ctx) {
+// POST /loginByPassword
+exports.loginByPassword = async function loginByPassword(ctx) {
   const user = await models.user.find({
     where: {
       phone: ctx.request.body.phone,
@@ -66,6 +66,32 @@ exports.login = async function login(ctx) {
   });
 
   ctx.assert(user, 401, '用户名密码错误');
+
+  const token = md5(`${config.tokenKey}_${user.id}_${new Date()}`);
+  await user.update({
+    token,
+  });
+
+  ctx.body = user.safe();
+  ctx.body.token = token;
+  ctx.set('token', token);
+};
+
+// POST /loginByPhoneVerificationCode
+exports.loginByPhoneVerificationCode = async function loginByPhoneVerificationCode(ctx) {
+  const isVerifiedPhoneResult = await utils.phone.validatePhoneCode(
+    ctx.request.body.phone,
+    ctx.request.body.phoneVerificationCode,
+  );
+  ctx.assert(isVerifiedPhoneResult, 400, '手机验证码错误');
+
+  const user = await models.user.find({
+    where: {
+      phone: ctx.request.body.phone,
+    },
+  });
+
+  ctx.assert(user, 404, '用户名不存在');
 
   const token = md5(`${config.tokenKey}_${user.id}_${new Date()}`);
   await user.update({

@@ -19,6 +19,16 @@ module.exports = sequelize.connect.define('user', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  assetCount: { // 资产数量
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  assetValue: { // 资产估值
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
+  },
   balance: { // 账户余额
     type: DataTypes.FLOAT,
     allowNull: false,

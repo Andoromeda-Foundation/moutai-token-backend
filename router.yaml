@@ -50,7 +50,7 @@ paths:
       summary: 发送验证短信
       description:
         1. 发送验证短信，用户注册、修改绑定手机前调用，目前验证码都是1234
-        2. type为register或forgetPassword，后者会校验账号是否注册过
+        2. type为register、forgetPassword、login，后两者会校验账号是否注册过
       x-oai-controller:
         - file: user
           handler: sendValidatePhoneSMS
@@ -153,12 +153,12 @@ paths:
                 type: integer
               result:
                 $ref: '#/definitions/user'
-  /login:
+  /loginByPassword:
     post:
       summary: 用户登录
       x-oai-controller:
         - file: login
-          handler: login
+          handler: loginByPassword
       parameters:
         - in: body
           name: body
@@ -171,6 +171,39 @@ paths:
               phone:
                 type: string
               password:
+                type: string
+      responses:
+        '200':
+          description: 返回登录的用户的信息
+          headers:
+            token:
+              type: string
+              description: 用户的token，登录后所有请求都应在header中加上此token。用户退出或在其他设备登录后，此token自动失效。
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/user'
+  /loginByPhoneVerificationCode:
+    post:
+      summary: 用户登录
+      x-oai-controller:
+        - file: login
+          handler: loginByPhoneVerificationCode
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            required:
+              - phone
+              - phoneVerificationCode
+            properties:
+              phone:
+                type: string
+              phoneVerificationCode:
                 type: string
       responses:
         '200':
@@ -301,7 +334,7 @@ paths:
         - in: query
           name: status
           type: string
-          description: status默认为normal
+          description: status默认为sale
         - in: query
           name: brand
           type: string
@@ -346,6 +379,37 @@ paths:
           type: integer
           required: true
           description: 酒id
+      responses:
+        '200':
+          description: 返回一瓶酒酒的信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/spirit'
+    patch:
+      summary: 更新酒状态
+      description: 只能修改自己的酒的状态，在normal（下架）和sale（挂单）中切换
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: spirit
+          handler: update
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 酒id
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
       responses:
         '200':
           description: 返回一瓶酒酒的信息
@@ -492,6 +556,10 @@ definitions:
         type: string
       bio:
         type: string
+      assetCount:
+        type: integer
+      assetValue:
+        type: number
       verifiedStatus:
         type: string
       createdAt:
