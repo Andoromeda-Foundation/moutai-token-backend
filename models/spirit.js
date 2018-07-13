@@ -17,6 +17,11 @@ module.exports = sequelize.connect.define('spirit', {
     allowNull: false,
     defaultValue: 'normal',
   },
+  coverFile: { // 封面图片
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'default.jpg',
+  },
   brand: { // 品牌
     type: DataTypes.STRING,
     allowNull: false,
@@ -59,6 +64,12 @@ module.exports = sequelize.connect.define('spirit', {
     defaultValue: [],
   },
 }, {
+  getterMethods: {
+    coverFileDownloadUrl() { // 封面图片下载链接
+      const coverFile = this.coverFile;
+      return `/static/images/${coverFile}`;
+    },
+  },
   timestamps: true,
   indexes: [],
 });

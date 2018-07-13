@@ -335,7 +335,7 @@ paths:
               result:
                 $ref: '#/definitions/spirits'
   /spirits/{id}:
-    post:
+    get:
       summary: 获取一瓶酒信息
       x-oai-controller:
         - file: spirit
@@ -510,6 +510,10 @@ definitions:
       title:
         type: string
       status:
+        type: string
+      coverFile:
+        type: string
+      coverFileDownloadUrl:
         type: string
       brand:
         type: string
