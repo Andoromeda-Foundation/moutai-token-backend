@@ -330,11 +330,66 @@ paths:
           name: offset
           type: integer
           description: 限制返回的offset， 默认为0
-
         - in: query
           name: status
           type: string
           description: status默认为sale
+        - in: query
+          name: brand
+          type: string
+          description: 品牌
+        - in: query
+          name: region
+          type: string
+          description: 产地
+        - in: query
+          name: time
+          type: string
+          description: 生产年份
+        - in: query
+          name: degree
+          type: string
+          description: 度数
+        - in: query
+          name: specification
+          type: string
+          description: 规格
+      responses:
+        '200':
+          description: 返回spirit列表，返回体中的count是spirit总数
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              count:
+                type: integer
+              result:
+                $ref: '#/definitions/spirits'
+  /user/spirits:
+    get:
+      summary: 获取我的酒
+      description:
+        1. 获取我的酒
+        2. 可以输入'status', 'brand', 'region', 'time', 'degree', 'specification'作为筛选条件
+      x-oai-controller:
+        - file: spirit
+          handler: getUserSpirits
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          description: 限制返回的limit，默认为50，最大值为50
+        - in: query
+          name: offset
+          type: integer
+          description: 限制返回的offset， 默认为0
+        - in: query
+          name: status
+          type: string
+          description: status为normal或sale
         - in: query
           name: brand
           type: string

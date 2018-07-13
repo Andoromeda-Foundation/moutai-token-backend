@@ -47,6 +47,45 @@ exports.getSpirits = async function getSpirits(ctx) {
   };
 };
 
+// GET /user/spirits
+exports.getUserSpirits = async function getUserSpirits(ctx) {
+  const user = await ctx.auth();
+
+  let limit = parseInt(ctx.query.limit || 50, 10);
+  limit = limit > 50 ? 50 : limit;
+  const offset = parseInt(ctx.query.offset || 0, 10);
+
+  const option = {
+    limit,
+    offset,
+    where: {
+      userId: user.id,
+    },
+    include: [{
+      model: models.user,
+      attributes: config.userPublicAttributes,
+    }],
+    order: [
+      ['updatedAt', 'DESC'],
+    ],
+  };
+
+  option.where = _.assign(option.where, _.pick(ctx.query, ['status', 'brand', 'region', 'time', 'degree', 'specification']));
+
+  const spirits = await models.spirit.findAll(option);
+  const count = await models.spirit.count({
+    where: option.where,
+  });
+  ctx.state.noPack = true;
+  ctx.body = {
+    limit,
+    offset,
+    statusCode: 200,
+    result: spirits,
+    count,
+  };
+};
+
 // GET /spirits/{id}
 exports.getSpiritById = async function getSpiritById(ctx) {
   const spirit = await models.spirit.find({
