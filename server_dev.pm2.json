@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "moutai_token_server_prod",
+      "name": "moutai_token_server_dev",
       "script": "webServer.js",
       "watch": false,
       "merge_logs": true,
@@ -9,7 +9,7 @@
       "instances": 0,
       "exec_mode": "cluster",
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "dev"
       }
     }
   ]
