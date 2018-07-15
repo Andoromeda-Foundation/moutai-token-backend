@@ -645,9 +645,9 @@ definitions:
       time:
         type: integer
       degree:
-        type: integer
+        type: string
       specification:
-        type: integer
+        type: string
       currentPrice:
         type: number
       nextPrice:
