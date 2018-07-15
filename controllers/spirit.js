@@ -217,7 +217,7 @@ exports.getSpiritById = async function getSpiritById(ctx) {
 };
 
 // PATCH /spirits/{id}
-exports.update = async function update(ctx) {
+exports.updateSpirit = async function updateSpirit(ctx) {
   const user = await ctx.auth();
 
   const spirit = await models.spirit.find({
@@ -228,11 +228,17 @@ exports.update = async function update(ctx) {
   ctx.assert(spirit, 404);
   ctx.assert(spirit.userId === user.id, 400, '只能修改自己的酒的状态');
 
-  ctx.assert(ctx.request.body.status === 'sale' || ctx.request.body.status === 'normal', 400, '无效状态');
+  const update = {};
+  if (ctx.request.body.status) {
+    ctx.assert(ctx.request.body.status === 'sale' || ctx.request.body.status === 'normal', 400, '无效状态');
+    update.status = ctx.request.body.status;
+  }
+  if (ctx.request.body.nextPrice) {
+    ctx.assert(ctx.request.body.nextPrice > 0, 400, '价格有误');
+    update.nextPrice = ctx.request.body.nextPrice;
+  }
 
-  await spirit.update({
-    status: ctx.request.body.status,
-  });
+  await spirit.update(update);
 
   ctx.body = await models.spirit.find({
     where: {

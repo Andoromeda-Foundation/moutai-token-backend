@@ -446,12 +446,14 @@ paths:
                 $ref: '#/definitions/spirit'
     patch:
       summary: 更新酒状态
-      description: 只能修改自己的酒的状态，在normal（下架）和sale（挂单）中切换
+      description: 只能修改自己的酒，可修改
+      1. 状态，在normal（下架）和sale（挂单）中切换
+      2. nextPrice 挂单价，需要为正数，可以小于买入价
       security:
         - APIKeyHeader: []
       x-oai-controller:
         - file: spirit
-          handler: update
+          handler: updateSpirit
       parameters:
         - in: path
           name: id
@@ -465,6 +467,8 @@ paths:
             properties:
               status:
                 type: string
+              nextPrice:
+                type: number
       responses:
         '200':
           description: 返回一瓶酒酒的信息
