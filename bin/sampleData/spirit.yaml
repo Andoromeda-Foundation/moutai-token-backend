@@ -1,12 +1,65 @@
-- index: 00001
-  title: 贵州茅台 酱香型白酒 53度 飞天茅台
+- index: B9528
+  title: 飞天茅台 2008 B9528
   status: sale
-  brand: 茅台
+  brand: 飞天茅台
   region: 贵州
-  time: 2005
-  degree: 53
-  specification: 500
-  currentPrice: 1000
-  nextPrice: 1050
+  time: 2008
+  degree: 53%vol
+  specification: 500ml
+  currentPrice: 4500
+  nextPrice: 4725
   userId: 1
   freezeTo: 2018-07-20 00:00:00+00
+  coverFile: moutai.jpg
+- index: B9529
+  title: 剑南春 1998 B9529
+  status: sale
+  brand: 剑南春
+  region: 贵州
+  time: 1998
+  degree: 52%vol
+  specification: 500ml
+  currentPrice: 1099
+  nextPrice: 1154
+  userId: 1
+  freezeTo: 2018-07-20 00:00:00+00
+  coverFile: jiannanchun.jpg
+- index: B9530
+  title: 飞天茅台 2018 B9530
+  status: sale
+  brand: 飞天茅台
+  region: 贵州
+  time: 2018
+  degree: 53%vol
+  specification: 1850ml
+  currentPrice: 1943
+  nextPrice: 4725
+  userId: 1
+  freezeTo: 2018-07-20 00:00:00+00
+  coverFile: moutai.jpg
+- index: B9531
+  title: 金剑南 2018 B9531
+  status: sale
+  brand: 金剑南
+  region: 贵州
+  time: 2018
+  degree: 52%vol
+  specification: 500ml
+  currentPrice: 300
+  nextPrice: 315
+  userId: 1
+  freezeTo: 2018-07-20 00:00:00+00
+  coverFile: jiannanchun.jpg
+- index: B9532
+  title: 习酒原酒 2018 B9532
+  status: sale
+  brand: 习酒原酒
+  region: 贵州
+  time: 2018
+  degree: 53%vol
+  specification: 100斤
+  currentPrice: 10000
+  nextPrice: 10500
+  userId: 1
+  freezeTo: 2018-07-20 00:00:00+00
+  coverFile: xijiuyuanjiu.jpg

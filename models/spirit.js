@@ -35,11 +35,11 @@ module.exports = sequelize.connect.define('spirit', {
     allowNull: false,
   },
   degree: { // 度数
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   specification: { // 规格
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   currentPrice: { // 当前价格
