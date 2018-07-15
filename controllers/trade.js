@@ -83,5 +83,11 @@ exports.getUserTrades = async function getUserTrades(ctx) {
 
   const trades = await models.trade.findAll(option);
 
-  ctx.body = trades;
+  ctx.body = trades.map((trade) => {
+    const data = trade.toJSON();
+    data.isCurrentUserSell = data.fromUserId === user.id;
+    data.isCurrentUserBuy = data.toUserId === user.id;
+
+    return data;
+  });
 };
