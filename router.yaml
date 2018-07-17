@@ -557,7 +557,7 @@ paths:
           description: 酒id
       responses:
         '200':
-          description: 返回用户的交易历史
+          description: 返回酒的交易历史
           schema:
             type: object
             properties:
@@ -565,6 +565,82 @@ paths:
                 type: integer
               result:
                 $ref: '#/definitions/trades'
+  /spirits/{id}/news:
+    get:
+      summary: 获取一瓶酒的新闻
+      description: 获取一瓶酒的新闻，按时间倒序
+      x-oai-controller:
+        - file: news
+          handler: getSpiritNewsById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 酒id
+      responses:
+        '200':
+          description: 返回酒的所有所有新闻
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/newsArray'
+  /spirits/{id}/message:
+    get:
+      summary: 获取一瓶酒的所有评论
+      description: 获取一瓶酒的所有评论，按时间正序
+      x-oai-controller:
+        - file: message
+          handler: getSpiritMessageById
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 酒id
+      responses:
+        '200':
+          description: 返回酒的所有所有评论
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/messages'
+    post:
+      summary: 发表评论
+      security:
+        - APIKeyHeader: []
+      x-oai-controller:
+        - file: message
+          handler: comment
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: 酒id
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              content:
+                type: string
+      responses:
+        '200':
+          description: 评论成功，返回评论信息
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                $ref: '#/definitions/message'
   /user/trades:
     get:
       summary: 获取用户的所有交易记录
@@ -674,23 +750,6 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/spirit'
-  message:
-    type: object
-    properties:
-      id:
-        type: integer
-      content:
-        type: string
-      userId:
-        type: integer
-      createdAt:
-        type: string
-      updatedAt:
-        type: string
-  messages:
-    type: array
-    items:
-      $ref: '#/definitions/message'
   keyValue:
     type: object
     properties:
@@ -796,3 +855,41 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/transaction'
+  message:
+    type: object
+    properties:
+      id:
+        type: integer
+      content:
+        type: string
+      spiritId:
+        type: integer
+      userId:
+        type: integer
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+  messages:
+    type: array
+    items:
+      $ref: '#/definitions/message'
+  news:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      url:
+        type: string
+      spiritId:
+        type: integer
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+  newsArray:
+    type: array
+    items:
+      $ref: '#/definitions/news'

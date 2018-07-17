@@ -57,6 +57,10 @@ const define = function define() {
   models.delivery.belongsTo(models.user);
   models.spirit.hasOne(models.delivery);
   models.delivery.belongsTo(models.spirit);
+
+  // news: spiritId
+  models.spirit.hasMany(models.news);
+  models.news.belongsTo(models.spirit);
 };
 
 define();
