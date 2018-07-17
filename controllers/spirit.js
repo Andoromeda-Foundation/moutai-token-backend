@@ -139,6 +139,7 @@ exports.buy = async function buy(ctx) {
   });
   await models.transaction.create({
     type: 'expense',
+    status: 'success',
     amount: currentPrice,
     description: `购酒扣款 #${spirit.id} ${spirit.title}`,
     userId: toUserId,
@@ -182,6 +183,7 @@ exports.buy = async function buy(ctx) {
   });
   await models.transaction.create({
     type: 'income',
+    success: 'success',
     amount: currentPrice,
     description: `卖酒所得 #${spirit.id} ${spirit.title}`,
     userId: fromUserId,

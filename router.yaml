@@ -312,6 +312,48 @@ paths:
                 type: integer
               result:
                 $ref: '#/definitions/user'
+  /user/deposit:
+    post:
+      summary: 充值
+      description: 充值
+      x-oai-controller:
+        - file: pay
+          handler: deposit
+      security:
+        - APIKeyHeader: []
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              amount:
+                type: integer
+              openId:
+                type: string
+      responses:
+        '200':
+          description: 充值成功返回前端需要的调用内容
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+              result:
+                type: object
+                properties:
+                  appId:
+                    type: string
+                  timeStamp:
+                    type: string
+                  nonceStr:
+                    type: string
+                  package:
+                    type: string
+                  signType:
+                    type: string
+                  paySign:
+                    type: string
   /spirits:
     get:
       summary: 获取所有挂单中的酒

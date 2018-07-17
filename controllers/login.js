@@ -40,6 +40,7 @@ exports.register = async function register(ctx) {
     });
     await models.transaction.create({
       type: 'income',
+      status: 'success',
       amount: 10000,
       description: '注册赠送10000元',
       userId: user.id,

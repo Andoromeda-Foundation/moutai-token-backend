@@ -8,6 +8,11 @@ module.exports = sequelize.connect.define('transaction', {
     values: ['deposit', 'withdraw', 'income', 'expense'],
     allowNull: false,
   },
+  status: {
+    type: DataTypes.ENUM,
+    values: ['pending', 'success', 'fail'],
+    allowNull: false,
+  },
   amount: {
     type: DataTypes.FLOAT,
     allowNull: false,
