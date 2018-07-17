@@ -720,6 +720,15 @@ paths:
                 type: integer
               result:
                 $ref: '#/definitions/trades'
+  /deposit/callback:
+    post:
+      summary: 微信支付回调，前端不需要使用
+      x-oai-controller:
+        - file: pay
+          handler: callback
+      responses:
+        '200':
+          description: 回调成功
 
 definitions:
   user:

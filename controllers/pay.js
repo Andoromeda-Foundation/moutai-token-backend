@@ -36,3 +36,34 @@ exports.deposit = async function deposit(ctx) {
 
   ctx.body = result.body;
 };
+
+// POST /deposit/callback
+exports.callback = async function callback(ctx) {
+  if (ctx.request.body.return_code === 'SUCCESS') {
+    const transactionId = parseInt(ctx.request.body.out_trade_no, 10);
+
+    const transaction = await models.transaction.find({
+      id: transactionId,
+      status: 'pending',
+    });
+    ctx.assert(transaction, 404);
+
+    const user = await models.user.find({
+      id: transaction.userId,
+    });
+    ctx.assert(user, 404);
+
+    await transaction.update({
+      status: 'success',
+    });
+
+    await user.increment({
+      balance: transaction.amount,
+    });
+  }
+
+  ctx.body = {
+    return_code: 'SUCCESS',
+    return_msg: 'OK',
+  };
+};
