@@ -3,7 +3,8 @@ info:
   title: moutai-token
   description: moutai-token
   version: 0.0.1
-host: 47.75.74.227:8080
+# host: 47.75.74.227:8080
+host: 127.0.0.1:8080
 basePath: /api
 schemes:
   # - https

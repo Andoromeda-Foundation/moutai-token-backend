@@ -103,6 +103,7 @@ app.use(async (ctx, next) => {
     }
   } catch (error) {
     if (config.env === 'dev' || process.env.DEBUG === 'true') {
+      console.error(error); // eslint-disable-line no-console
       console.error(error.stack); // eslint-disable-line no-console
     }
     ctx.status = 200;

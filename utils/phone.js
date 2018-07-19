@@ -17,38 +17,13 @@ exports.sendValidatePhoneSMS = async function sendValidatePhoneSMS(phone) {
 
   if (config.sendSMS) {
     // PROD MODE
-    if (config.SMSProvider === 'dingdongCloud') {
-      const smsResult = await request
-        .post('https://api.dingdongcloud.com/v1/sms/captcha/send')
-        .send({
-          apikey: config.dingdongCloud.API_KEY,
-          mobile: `${phone}`,
-          content: `【CoinFair】你的验证码是${phoneVerificationCode}，请在10分钟内输入。请勿告诉其他人。`,
-        });
-    } else if (config.SMSProvider === 'tencentCloud') {
-      const time = moment().unix();
-      const sig = sha256(`appkey=${
-        config.tencentCloud.APP_KEY
-      }&random=${phoneVerificationCode}&time=${time}&mobile=${phone}`);
-      const smsResult = await request
-        .post('https://yun.tim.qq.com/v5/tlssmssvr/sendsms')
-        .query({
-          sdkappid: config.tencentCloud.APP_ID,
-          random: phoneVerificationCode,
-        })
-        .send({
-          ext: '',
-          extend: '',
-          msg: `你的验证码是${phoneVerificationCode}`,
-          sig,
-          tel: {
-            mobile: `${phone}`,
-            nationcode: '86',
-          },
-          time,
-          type: 0,
-        });
-    }
+    const smsResult = await request.post('https://sms.yunpian.com/v2/sms/single_send.json')
+      .set('Content-Type', 'application/json')
+      .send({
+        apikey: config.yunpian.API_KEY,
+        mobile: `${phone}`,
+        text: `【酿造家】您的验证码是${phoneVerificationCode}`,
+      });
   } else {
     // DEV MODE
     phoneVerificationCode = '1234';
