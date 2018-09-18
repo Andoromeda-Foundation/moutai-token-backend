@@ -19,7 +19,7 @@ exports.tokenKey = 'testTokenKey';
 exports.seedKey = 'testSeedKey';
 exports.passwordKey = 'testPasswordKey';
 exports.yunpian = {
-  API_KEY: '8a49677c0c2a5101b8bdee5e8ea0cd35',
+  API_KEY: '',
 };
 exports.sendSMS = false;
 exports.userPublicAttributes = [
